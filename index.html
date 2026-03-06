@@ -5,35 +5,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ZERDA LOGÍSTICA - Gestión de Vales</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
-        body { 
-            background-color: #f8fafc; 
-            font-family: 'Inter', system-ui, -apple-system, sans-serif;
-        }
-        .signature-wrapper {
-            touch-action: none;
-            cursor: crosshair;
-        }
-        @media print {
-            .no-print { display: none !important; }
-            body { background: white; padding: 0; }
-            #vale-render { 
-                position: absolute; 
-                top: 0; 
-                left: 0; 
-                width: 100%; 
-                border: none; 
-                box-shadow: none; 
-            }
-        }
+        body { background-color: #f8fafc; font-family: 'Inter', sans-serif; }
+        .signature-wrapper { touch-action: none; cursor: crosshair; }
         .loader {
-            border: 2px solid #f3f3f3;
-            border-top: 2px solid #3b82f6;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #2563eb;
             border-radius: 50%;
-            width: 16px;
-            height: 16px;
+            width: 20px;
+            height: 20px;
             animation: spin 1s linear infinite;
         }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
@@ -41,27 +24,22 @@
 </head>
 <body class="p-4 md:p-10">
 
-    <header class="max-w-6xl mx-auto mb-10 flex justify-between items-center no-print">
+    <header class="max-w-6xl mx-auto mb-10 flex justify-between items-center">
         <div>
             <h1 class="text-3xl font-black text-slate-800 tracking-tighter">ZERDA <span class="text-blue-600">LOGÍSTICA</span></h1>
-            <p class="text-slate-500 text-sm font-medium">Control de Movimiento de Pallets</p>
+            <p class="text-slate-500 text-sm font-medium">Sistema de Gestión en Tiempo Real</p>
         </div>
-        <div id="reloj" class="text-lg font-mono bg-white border border-slate-200 px-4 py-2 rounded-xl shadow-sm text-slate-600">00:00:00</div>
+        <div id="reloj" class="hidden md:block text-lg font-mono bg-white border px-4 py-2 rounded-xl shadow-sm text-slate-600">00:00:00</div>
     </header>
 
     <main class="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-10">
         
-        <div class="lg:col-span-7 bg-white p-8 rounded-2xl shadow-sm border border-slate-200 no-print">
-            <h2 class="text-xl font-bold text-slate-800 mb-8 flex items-center gap-2">
-                <span class="w-2 h-6 bg-blue-600 rounded-full"></span>
-                Registro de Carga
-            </h2>
-            
+        <div class="lg:col-span-7 bg-white p-8 rounded-2xl shadow-sm border border-slate-200">
             <form id="valeForm" class="space-y-6">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div class="space-y-2">
-                        <label class="text-xs font-bold text-slate-500 uppercase tracking-wider">Empresa de Transporte</label>
-                        <select id="colecta" required onchange="checkOtroTransporte(this.value)" class="w-full border border-slate-200 p-3 rounded-xl bg-slate-50 focus:ring-4 focus:ring-blue-100 focus:border-blue-500 outline-none transition-all">
+                        <label class="text-xs font-bold text-slate-500 uppercase">Transporte</label>
+                        <select id="colecta" required class="w-full border p-3 rounded-xl bg-slate-50 outline-none">
                             <option value="">Seleccionar...</option>
                             <option value="MOOVA">MOOVA</option>
                             <option value="WEBPACK">WEBPACK</option>
@@ -69,343 +47,228 @@
                             <option value="IFLOW">IFLOW</option>
                             <option value="OCA">OCA</option>
                             <option value="ORO NEGRO">ORO NEGRO</option>
-                            <option value="ENVIO PACK">ENVIO PACK</option>
-                            <option value="DPD">DPD</option>
-                            <option value="LA SEVILLANITA">LA SEVILLANITA</option>
-                            <option value="ANDREANI">ANDREANI</option>
                             <option value="FLOTA PROPIA">FLOTA PROPIA</option>
-                            <option value="OTRO">OTRO (ESPECIFICAR)</option>
                         </select>
-                        <div id="containerOtroTransporte" class="hidden flex gap-2 mt-2">
-                            <input type="text" id="otroTransporte" placeholder="Nombre de la empresa" class="flex-1 border border-blue-200 p-3 rounded-xl bg-blue-50 outline-none">
-                            <button type="button" onclick="resetTransporte()" class="p-3 text-slate-400 hover:text-red-500">✕</button>
-                        </div>
                     </div>
 
                     <div class="space-y-2">
-                        <label class="text-xs font-bold text-slate-500 uppercase tracking-wider">Responsable Despacho</label>
-                        <select id="despachador" required onchange="checkOtroDespachador(this.value)" class="w-full border border-slate-200 p-3 rounded-xl bg-slate-50 focus:ring-4 focus:ring-blue-100 focus:border-blue-500 outline-none transition-all">
+                        <label class="text-xs font-bold text-slate-500 uppercase">Responsable Despacho</label>
+                        <select id="despachador" required class="w-full border p-3 rounded-xl bg-slate-50 outline-none">
                             <option value="">Seleccionar...</option>
                             <option value="LUCAS ZERDA">LUCAS ZERDA</option>
                             <option value="BRIAN LEICHNER">BRIAN LEICHNER</option>
-                            <option value="JONATHAN MELIANDE">JONATHAN MELIANDE</option>
                             <option value="JORGE PALOMARES">JORGE PALOMARES</option>
-                            <option value="SERDIUK CRISTIAN">SERDIUK CRISTIAN</option>
-                            <option value="SANTILLAN DANIEL">SANTILLAN DANIEL</option>
-                            <option value="OTRO">OTRO (ESPECIFICAR)</option>
                         </select>
-                        <div id="containerOtroDespachador" class="hidden flex gap-2 mt-2">
-                            <input type="text" id="otroDespachador" placeholder="Nombre completo" class="flex-1 border border-blue-200 p-3 rounded-xl bg-blue-50 outline-none">
-                            <button type="button" onclick="resetDespachador()" class="p-3 text-slate-400 hover:text-red-500">✕</button>
-                        </div>
                     </div>
 
                     <div class="space-y-2">
-                        <label class="text-xs font-bold text-slate-500 uppercase tracking-wider">Nombre del Chofer</label>
-                        <input type="text" id="chofer" required class="w-full border border-slate-200 p-3 rounded-xl focus:ring-4 focus:ring-blue-100 focus:border-blue-500 outline-none transition-all uppercase">
+                        <label class="text-xs font-bold text-slate-500 uppercase">Chofer</label>
+                        <input type="text" id="chofer" required class="w-full border p-3 rounded-xl uppercase">
                     </div>
 
                     <div class="space-y-2">
-                        <label class="text-xs font-bold text-slate-500 uppercase tracking-wider">DNI / Documento</label>
-                        <input type="number" id="dni" required class="w-full border border-slate-200 p-3 rounded-xl focus:ring-4 focus:ring-blue-100 focus:border-blue-500 outline-none transition-all">
+                        <label class="text-xs font-bold text-slate-500 uppercase">Patente</label>
+                        <input type="text" id="patente" required class="w-full border p-3 rounded-xl uppercase" placeholder="ABC-123">
                     </div>
 
                     <div class="space-y-2">
-                        <label class="text-xs font-bold text-slate-500 uppercase tracking-wider">Patente Vehículo</label>
-                        <input type="text" id="patente" required class="w-full border border-slate-200 p-3 rounded-xl focus:ring-4 focus:ring-blue-100 focus:border-blue-500 outline-none transition-all uppercase" placeholder="ABC-123">
+                        <label class="text-xs font-bold text-slate-500 uppercase">DNI</label>
+                        <input type="number" id="dni" required class="w-full border p-3 rounded-xl">
                     </div>
 
                     <div class="space-y-2">
-                        <label class="text-xs font-bold text-slate-500 uppercase tracking-wider">Puerta de Carga</label>
-                        <select id="puerta" required class="w-full border border-slate-200 p-3 rounded-xl bg-slate-50 focus:ring-4 focus:ring-blue-100 focus:border-blue-500 outline-none transition-all">
-                            <option value="">Seleccionar puerta...</option>
-                            <script>for(let i=1; i<=39; i++) document.write(`<option value="Puerta ${i}">Puerta ${i}</option>`);</script>
+                        <label class="text-xs font-bold text-slate-500 uppercase">Puerta</label>
+                        <select id="puerta" required class="w-full border p-3 rounded-xl bg-slate-50">
+                            <script>for(let i=1; i<=20; i++) document.write(`<option value="Puerta ${i}">Puerta ${i}</option>`);</script>
                         </select>
                     </div>
                 </div>
 
                 <div class="bg-slate-50 p-6 rounded-2xl flex items-center justify-between border border-slate-100">
-                    <div class="space-y-2 w-full">
-                        <label class="text-xs font-bold text-slate-500 uppercase tracking-wider">Cantidad de Pallets</label>
-                        <div class="flex items-center gap-4">
-                            <button type="button" onclick="adjPallets(-1)" class="w-12 h-12 bg-white border border-slate-200 rounded-full font-bold flex items-center justify-center hover:bg-slate-100 active:scale-90 transition-all shadow-sm">-</button>
-                            <input type="number" id="pallets" value="0" min="0" class="w-24 text-center text-3xl font-black bg-transparent outline-none">
-                            <button type="button" onclick="adjPallets(1)" class="w-12 h-12 bg-white border border-slate-200 rounded-full font-bold flex items-center justify-center hover:bg-slate-100 active:scale-90 transition-all shadow-sm">+</button>
-                        </div>
+                    <span class="text-xs font-bold text-slate-500 uppercase">Cantidad de Pallets</span>
+                    <div class="flex items-center gap-4">
+                        <button type="button" onclick="adjPallets(-1)" class="w-10 h-10 bg-white border rounded-full font-bold">-</button>
+                        <input type="number" id="pallets" value="0" class="w-16 text-center text-2xl font-black bg-transparent">
+                        <button type="button" onclick="adjPallets(1)" class="w-10 h-10 bg-white border rounded-full font-bold">+</button>
                     </div>
                 </div>
 
                 <div class="space-y-3">
                     <div class="flex justify-between items-center">
-                        <label class="text-xs font-bold text-slate-500 uppercase tracking-wider">Firma del Transportista</label>
-                        <button type="button" onclick="clearCanvas()" class="text-xs text-blue-600 font-bold hover:bg-blue-50 px-3 py-1 rounded-lg transition-colors">LIMPIAR FIRMA</button>
+                        <label class="text-xs font-bold text-slate-500 uppercase">Firma Transportista</label>
+                        <button type="button" onclick="clearCanvas()" class="text-xs text-blue-600 font-bold">LIMPIAR</button>
                     </div>
                     <div class="signature-wrapper border-2 border-dashed border-slate-200 rounded-2xl bg-slate-50 overflow-hidden">
                         <canvas id="canvas" class="w-full h-40"></canvas>
                     </div>
                 </div>
 
-                <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-xl transition-all shadow-lg shadow-blue-100 active:scale-[0.99]">
-                    VISUALIZAR VALE
+                <button type="submit" class="w-full bg-blue-600 text-white font-bold py-4 rounded-xl shadow-lg hover:bg-blue-700 transition-all">
+                    GENERAR VISTA PREVIA
                 </button>
             </form>
         </div>
 
         <div class="lg:col-span-5 flex flex-col items-center">
-            <div id="vale-render" class="bg-white w-full border border-slate-200 shadow-2xl rounded-sm p-10 text-slate-800 relative overflow-hidden">
-                <div class="text-center border-b-2 border-slate-100 pb-8 mb-8">
-                    <h2 class="text-2xl font-black uppercase tracking-[0.2em] text-slate-900">Vale de Pallets</h2>
-                    <p class="text-[11px] text-slate-400 mt-2 font-mono tracking-widest uppercase">Zerda Logistica S.A. | Operaciones</p>
+            <div id="vale-render" class="bg-white w-full border border-slate-200 shadow-xl rounded-sm p-8 text-slate-800">
+                <div class="text-center border-b pb-6 mb-6">
+                    <h2 class="text-xl font-black uppercase tracking-widest">Vale de Entrega</h2>
+                    <p class="text-[10px] text-slate-400 font-mono mt-1">OPERACIONES ZERDA LOGÍSTICA</p>
                 </div>
 
-                <div class="space-y-8">
-                    <div class="grid grid-cols-2 gap-y-6">
-                        <div>
-                            <span class="text-[10px] text-slate-400 uppercase font-black block tracking-tighter">Transporte</span>
-                            <p id="view-colecta" class="font-bold text-lg uppercase leading-tight">---</p>
-                        </div>
-                        <div class="text-right">
-                            <span class="text-[10px] text-slate-400 uppercase font-black block tracking-tighter">Muelle / Puerta</span>
-                            <p id="view-puerta" class="font-bold text-lg leading-tight text-blue-600">---</p>
-                        </div>
-                        <div>
-                            <span class="text-[10px] text-slate-400 uppercase font-black block tracking-tighter">Patente</span>
-                            <p id="view-patente" class="font-bold text-lg uppercase leading-tight">---</p>
-                        </div>
-                        <div class="text-right">
-                            <span class="text-[10px] text-slate-400 uppercase font-black block tracking-tighter">Total Pallets</span>
-                            <p id="view-pallets" class="font-black text-4xl text-slate-900 leading-none">0</p>
-                        </div>
-                    </div>
+                <div class="grid grid-cols-2 gap-4 text-sm mb-6">
+                    <div><span class="text-[10px] text-slate-400 uppercase font-bold block">Transporte</span><p id="v-colecta" class="font-bold">---</p></div>
+                    <div class="text-right"><span class="text-[10px] text-slate-400 uppercase font-bold block">Puerta</span><p id="v-puerta" class="font-bold">---</p></div>
+                    <div><span class="text-[10px] text-slate-400 uppercase font-bold block">Chofer</span><p id="v-chofer" class="font-bold">---</p></div>
+                    <div class="text-right"><span class="text-[10px] text-slate-400 uppercase font-bold block">Pallets</span><p id="v-pallets" class="font-black text-2xl">0</p></div>
+                </div>
 
-                    <div class="text-xs leading-relaxed text-slate-600 pt-4 border-t border-slate-50">
-                        Por la presente, yo <span id="view-chofer-nombre" class="font-bold text-slate-900 uppercase">...</span> 
-                        identificado con DNI <span id="view-chofer-dni" class="font-bold text-slate-900">...</span>, 
-                        confirmo haber recibido la cantidad de pallets mencionada anteriormente de forma conforme.
+                <div class="border-t pt-4">
+                    <span class="text-[10px] text-slate-400 uppercase font-bold block text-center mb-2">Firma Digital</span>
+                    <div class="h-24 flex items-center justify-center bg-slate-50 rounded-lg">
+                        <img id="v-firma" src="" class="max-h-full hidden">
                     </div>
-
-                    <div class="pt-6">
-                        <span class="text-[10px] text-slate-400 uppercase font-black block mb-4 text-center">Firma de Conformidad</span>
-                        <div class="h-32 flex items-center justify-center border border-slate-100 rounded-2xl bg-slate-50/50 overflow-hidden">
-                            <img id="view-firma" src="" class="max-h-full max-w-full hidden scale-110">
-                        </div>
+                </div>
+                
+                <div class="mt-6 flex justify-between items-end text-[9px] text-slate-400 font-mono">
+                    <div>
+                        <p id="v-fecha">--/--/--</p>
+                        <p id="v-folio">FOLIO: PENDIENTE</p>
                     </div>
-
-                    <div class="flex justify-between items-end pt-8 border-t border-slate-100">
-                        <div class="text-[10px] text-slate-400 font-mono leading-tight">
-                            <p id="view-fecha" class="font-bold">--/--/----</p>
-                            <p id="view-hora">--:--:--</p>
-                            <p id="view-id" class="mt-2 text-[8px] opacity-50 uppercase">SIN REGISTRO</p>
-                        </div>
-                        <div class="text-right">
-                            <span class="text-[10px] text-slate-400 uppercase font-black block mb-1">Responsable Zerda</span>
-                            <p id="view-responsable" class="text-xs font-bold uppercase text-slate-900">---</p>
-                        </div>
-                    </div>
+                    <p>Copia Digital Certificada</p>
                 </div>
             </div>
 
-            <div id="controles-vale" class="hidden mt-8 w-full space-y-3 no-print">
-                <button id="btn-save" onclick="guardarValeYPDF()" class="w-full bg-emerald-600 text-white font-bold py-4 rounded-xl flex items-center justify-center gap-3 hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-100">
-                    <span id="save-icon">💾</span> <span id="btn-text">Confirmar y Guardar en Nube</span>
+            <div id="controles" class="hidden mt-6 w-full space-y-3">
+                <button id="btn-save" onclick="enviarASupabase()" class="w-full bg-emerald-600 text-white font-bold py-4 rounded-xl flex items-center justify-center gap-3 hover:bg-emerald-700">
+                    <span id="btn-icon">☁️</span> <span id="btn-text">Subir a la Nube</span>
                 </button>
-                <button onclick="window.print()" class="w-full bg-slate-900 text-white font-bold py-4 rounded-xl flex items-center justify-center gap-3 hover:bg-black transition-all shadow-xl">
-                    🖨️ Imprimir Copia Rápida
-                </button>
-            </div>
-
-            <div id="save-status" class="hidden mt-4 w-full p-4 bg-emerald-50 border border-emerald-200 rounded-2xl text-center">
-                <p id="status-message" class="text-sm text-emerald-700 font-bold"></p>
             </div>
         </div>
     </main>
 
     <script>
-        // --- CONFIGURACIÓN VERCEL -> GOOGLE SHEETS ---
-        // PEGA AQUÍ TU URL DE GOOGLE APPS SCRIPT (WEB APP)
-        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzu3rdAaI8HNAH4mj2FZjlgHBHXvnVgOkoeYftvYVmUiAS2uzjmfT3FUNqHMH8aBVM/exec";
+        // --- CONFIGURACIÓN SUPABASE ---
+        const SUPABASE_URL = "TU_SUPABASE_URL";
+        const SUPABASE_KEY = "TU_SUPABASE_ANON_KEY";
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        window.guardarValeYPDF = async () => {
-            const btn = document.getElementById('btn-save');
-            const btnText = document.getElementById('btn-text');
-            const icon = document.getElementById('save-icon');
-            
-            btn.disabled = true;
-            btnText.innerText = "Procesando...";
-            icon.innerHTML = '<div class="loader"></div>';
-
-            try {
-                // 1. Descargar PDF localmente
-                await window.descargarPDF();
-
-                // 2. Generar Folio
-                const idFolio = "ZL-" + Math.random().toString(36).substr(2, 9).toUpperCase();
-                
-                // 3. Preparar datos
-                const payload = {
-                    ...window.currentValeData,
-                    id: idFolio,
-                    firma: document.getElementById('view-firma').src
-                };
-
-                // 4. Enviar a Google via Fetch
-                await fetch(WEB_APP_URL, {
-                    method: 'POST',
-                    mode: 'no-cors', // Evita errores de CORS en Google Script
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-
-                // Éxito visual
-                btn.classList.replace('bg-emerald-600', 'bg-blue-600');
-                btnText.innerText = "¡Guardado con Éxito!";
-                icon.innerHTML = '✅';
-                document.getElementById('view-id').innerText = "FOLIO: " + idFolio;
-                document.getElementById('status-message').innerText = "Datos sincronizados con Google Sheets.";
-                document.getElementById('save-status').classList.remove('hidden');
-
-            } catch (error) {
-                console.error("Error:", error);
-                alert("Error al guardar: " + error.message);
-                btn.disabled = false;
-                btnText.innerText = "Reintentar Guardado";
-                icon.innerHTML = '⚠️';
-            }
-        };
-
-        // --- LÓGICA DE INTERFAZ (EXISTENTE) ---
+        // --- LÓGICA CANVAS ---
         const canvas = document.getElementById('canvas');
         const ctx = canvas.getContext('2d');
         let drawing = false;
-        let isSigned = false;
 
         function initCanvas() {
-            const rect = canvas.getBoundingClientRect();
             canvas.width = canvas.offsetWidth;
             canvas.height = canvas.offsetHeight;
             ctx.lineWidth = 3;
             ctx.lineCap = 'round';
-            ctx.strokeStyle = '#1e293b';
+            ctx.strokeStyle = '#000';
         }
-
         window.addEventListener('load', initCanvas);
-        window.addEventListener('resize', initCanvas);
 
-        function startDrawing(e) {
-            drawing = true;
-            draw(e);
-        }
-        function stopDrawing() {
-            drawing = false;
-            ctx.beginPath();
-        }
-        function draw(e) {
-            if (!drawing) return;
-            isSigned = true;
+        function getPos(e) {
             const rect = canvas.getBoundingClientRect();
-            const x = (e.clientX || e.touches[0].clientX) - rect.left;
-            const y = (e.clientY || e.touches[0].clientY) - rect.top;
-            ctx.lineTo(x, y);
-            ctx.stroke();
-            ctx.beginPath();
-            ctx.moveTo(x, y);
-        }
-
-        canvas.addEventListener('mousedown', startDrawing);
-        canvas.addEventListener('touchstart', (e) => { e.preventDefault(); startDrawing(e); });
-        window.addEventListener('mouseup', stopDrawing);
-        canvas.addEventListener('touchend', stopDrawing);
-        canvas.addEventListener('mousemove', draw);
-        canvas.addEventListener('touchmove', (e) => { e.preventDefault(); draw(e); });
-
-        function clearCanvas() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            isSigned = false;
-        }
-
-        setInterval(() => {
-            document.getElementById('reloj').innerText = new Date().toLocaleTimeString();
-        }, 1000);
-
-        function adjPallets(val) {
-            const input = document.getElementById('pallets');
-            input.value = Math.max(0, parseInt(input.value) + val);
-        }
-
-        function checkOtroTransporte(val) {
-            if(val === 'OTRO') {
-                document.getElementById('colecta').classList.add('hidden');
-                document.getElementById('containerOtroTransporte').classList.remove('hidden');
-            }
-        }
-        function resetTransporte() {
-            document.getElementById('colecta').classList.remove('hidden');
-            document.getElementById('colecta').value = "";
-            document.getElementById('containerOtroTransporte').classList.add('hidden');
-        }
-
-        function checkOtroDespachador(val) {
-            if(val === 'OTRO') {
-                document.getElementById('despachador').classList.add('hidden');
-                document.getElementById('containerOtroDespachador').classList.remove('hidden');
-            }
-        }
-        function resetDespachador() {
-            document.getElementById('despachador').classList.remove('hidden');
-            document.getElementById('despachador').value = "";
-            document.getElementById('containerOtroDespachador').classList.add('hidden');
-        }
-
-        window.currentValeData = null;
-
-        window.descargarPDF = async () => {
-            const element = document.getElementById('vale-render');
-            const { jsPDF } = window.jspdf;
-            const canvasImg = await html2canvas(element, { scale: 2, useCORS: true });
-            const imgData = canvasImg.toDataURL('image/png');
-            const pdf = new jsPDF('p', 'mm', 'a4');
-            const pdfWidth = pdf.internal.pageSize.getWidth();
-            const pdfHeight = (canvasImg.height * pdfWidth) / canvasImg.width;
-            pdf.addImage(imgData, 'PNG', 0, 10, pdfWidth, pdfHeight);
-            pdf.save(`Vale_${window.currentValeData.patente}_${Date.now()}.pdf`);
-        };
-
-        document.getElementById('valeForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            if(!isSigned) { alert("⚠️ Se requiere la firma."); return; }
-
-            let transport = document.getElementById('colecta').value;
-            if(transport === 'OTRO') transport = document.getElementById('otroTransporte').value;
-            let desp = document.getElementById('despachador').value;
-            if(desp === 'OTRO') desp = document.getElementById('otroDespachador').value;
-
-            window.currentValeData = {
-                colecta: transport,
-                despachador: desp,
-                chofer: document.getElementById('chofer').value,
-                dni: document.getElementById('dni').value,
-                patente: document.getElementById('patente').value,
-                puerta: document.getElementById('puerta').value,
-                pallets: document.getElementById('pallets').value
+            return {
+                x: (e.clientX || e.touches[0].clientX) - rect.left,
+                y: (e.clientY || e.touches[0].clientY) - rect.top
             };
-            
-            document.getElementById('view-colecta').innerText = window.currentValeData.colecta;
-            document.getElementById('view-puerta').innerText = window.currentValeData.puerta;
-            document.getElementById('view-patente').innerText = window.currentValeData.patente;
-            document.getElementById('view-pallets').innerText = window.currentValeData.pallets;
-            document.getElementById('view-responsable').innerText = window.currentValeData.despachador;
-            document.getElementById('view-chofer-nombre').innerText = window.currentValeData.chofer;
-            document.getElementById('view-chofer-dni').innerText = window.currentValeData.dni;
-            document.getElementById('view-fecha').innerText = new Date().toLocaleDateString();
-            document.getElementById('view-hora').innerText = new Date().toLocaleTimeString();
+        }
 
-            const img = document.getElementById('view-firma');
-            img.src = canvas.toDataURL();
-            img.classList.remove('hidden');
-            document.getElementById('controles-vale').classList.remove('hidden');
+        canvas.addEventListener('mousedown', (e) => { drawing = true; ctx.beginPath(); const p = getPos(e); ctx.moveTo(p.x, p.y); });
+        canvas.addEventListener('mousemove', (e) => { if(!drawing) return; const p = getPos(e); ctx.lineTo(p.x, p.y); ctx.stroke(); });
+        window.addEventListener('mouseup', () => drawing = false);
+        canvas.addEventListener('touchstart', (e) => { e.preventDefault(); drawing = true; ctx.beginPath(); const p = getPos(e); ctx.moveTo(p.x, p.y); });
+        canvas.addEventListener('touchmove', (e) => { e.preventDefault(); if(!drawing) return; const p = getPos(e); ctx.lineTo(p.x, p.y); ctx.stroke(); });
+
+        function clearCanvas() { ctx.clearRect(0, 0, canvas.width, canvas.height); }
+        function adjPallets(v) { document.getElementById('pallets').value = Math.max(0, parseInt(document.getElementById('pallets').value) + v); }
+
+        // --- PROCESO DE GUARDADO ---
+        async function enviarASupabase() {
+            const btn = document.getElementById('btn-save');
+            const txt = document.getElementById('btn-text');
+            const icon = document.getElementById('btn-icon');
+
+            btn.disabled = true;
+            txt.innerText = "Guardando...";
+            icon.innerHTML = '<div class="loader"></div>';
+
+            const folio = "ZL-" + Math.random().toString(36).substr(2, 6).toUpperCase();
+            const timestamp = Date.now();
+
+            try {
+                // 1. GENERAR PDF COMO BLOB
+                const element = document.getElementById('vale-render');
+                const canvasPdf = await html2canvas(element, { scale: 2 });
+                const imgData = canvasPdf.toDataURL('image/png');
+                const { jsPDF } = window.jspdf;
+                const pdf = new jsPDF('p', 'mm', 'a4');
+                pdf.addImage(imgData, 'PNG', 0, 10, 210, (canvasPdf.height * 210) / canvasPdf.width);
+                const pdfBlob = pdf.output('blob');
+
+                // 2. SUBIR PDF AL STORAGE
+                const { data: dataPdf, error: errPdf } = await supabase.storage
+                    .from('gestion_vales')
+                    .upload(`pdfs/${folio}.pdf`, pdfBlob);
+                if(errPdf) throw errPdf;
+
+                // 3. SUBIR FIRMA AL STORAGE
+                const firmaBlob = await (await fetch(canvas.toDataURL())).blob();
+                const { data: dataFirma, error: errFirma } = await supabase.storage
+                    .from('gestion_vales')
+                    .upload(`firmas/${folio}.png`, firmaBlob);
+                if(errFirma) throw errFirma;
+
+                // 4. OBTENER URLS PÚBLICAS
+                const pdfUrl = supabase.storage.from('gestion_vales').getPublicUrl(`pdfs/${folio}.pdf`).data.publicUrl;
+                const firmaUrl = supabase.storage.from('gestion_vales').getPublicUrl(`firmas/${folio}.png`).data.publicUrl;
+
+                // 5. GUARDAR EN TABLA VALES
+                const { error: errDb } = await supabase.from('vales').insert([{
+                    folio_id: folio,
+                    transporte: document.getElementById('colecta').value,
+                    despachador: document.getElementById('despachador').value,
+                    chofer: document.getElementById('chofer').value.toUpperCase(),
+                    dni: document.getElementById('dni').value,
+                    patente: document.getElementById('patente').value.toUpperCase(),
+                    puerta: document.getElementById('puerta').value,
+                    pallets: parseInt(document.getElementById('pallets').value),
+                    firma_url: firmaUrl,
+                    pdf_url: pdfUrl
+                }]);
+                if(errDb) throw errDb;
+
+                // ÉXITO
+                txt.innerText = "¡Guardado con éxito!";
+                icon.innerHTML = "✅";
+                btn.classList.replace('bg-emerald-600', 'bg-blue-600');
+                pdf.save(`Vale_${folio}.pdf`); // Descarga local también
+
+            } catch (e) {
+                console.error(e);
+                alert("Error: " + e.message);
+                btn.disabled = false;
+                txt.innerText = "Reintentar";
+            }
+        }
+
+        // VISTA PREVIA
+        document.getElementById('valeForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            document.getElementById('v-colecta').innerText = document.getElementById('colecta').value;
+            document.getElementById('v-chofer').innerText = document.getElementById('chofer').value;
+            document.getElementById('v-puerta').innerText = document.getElementById('puerta').value;
+            document.getElementById('v-pallets').innerText = document.getElementById('pallets').value;
+            document.getElementById('v-fecha').innerText = new Date().toLocaleString();
             
-            if(window.innerWidth < 1024) document.getElementById('vale-render').scrollIntoView({ behavior: 'smooth' });
+            const vFirma = document.getElementById('v-firma');
+            vFirma.src = canvas.toDataURL();
+            vFirma.classList.remove('hidden');
+            document.getElementById('controles').classList.remove('hidden');
         });
+
+        setInterval(() => { document.getElementById('reloj').innerText = new Date().toLocaleTimeString(); }, 1000);
     </script>
 </body>
 </html>
