@@ -3,278 +3,214 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>ZERDA LOGÍSTICA - Gestión de Vales</title>
+    <title>ZERDA LOGÍSTICA - Gestión</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
-        body { background-color: #f8fafc; font-family: 'Inter', sans-serif; overflow-x: hidden; }
-        .signature-wrapper { touch-action: none; cursor: crosshair; }
-        .loader {
-            border: 3px solid #f3f3f3;
-            border-top: 3px solid #2563eb;
-            border-radius: 50%;
-            width: 20px;
-            height: 20px;
-            animation: spin 1s linear infinite;
-        }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        body { background-color: #f8fafc; font-family: sans-serif; -webkit-tap-highlight-color: transparent; }
+        .signature-wrapper { touch-action: none; background: #f1f5f9; position: relative; }
+        canvas { touch-action: none; cursor: crosshair; display: block; width: 100%; height: 160px; }
+        button { cursor: pointer; }
     </style>
 </head>
 <body class="p-4 md:p-10">
 
-    <header class="max-w-6xl mx-auto mb-10 flex justify-between items-center">
-        <div>
-            <h1 class="text-3xl font-black text-slate-800 tracking-tighter">ZERDA <span class="text-blue-600">LOGÍSTICA</span></h1>
-            <p class="text-slate-500 text-sm font-medium">Sistema de Gestión en Tiempo Real</p>
-        </div>
-        <div id="reloj" class="hidden md:block text-lg font-mono bg-white border px-4 py-2 rounded-xl shadow-sm text-slate-600">00:00:00</div>
+    <header class="max-w-6xl mx-auto mb-10">
+        <h1 class="text-3xl font-black text-slate-800">ZERDA <span class="text-blue-600">LOGÍSTICA</span></h1>
     </header>
 
     <main class="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-10">
-        
-        <div class="lg:col-span-7 bg-white p-8 rounded-2xl shadow-sm border border-slate-200">
+        <div class="lg:col-span-7 bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
             <form id="valeForm" class="space-y-6">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div class="space-y-2">
-                        <label class="text-xs font-bold text-slate-500 uppercase">Transporte</label>
-                        <select id="colecta" required class="w-full border p-3 rounded-xl bg-slate-50 outline-none">
-                            <option value="">Seleccionar...</option>
-                            <option value="MOOVA">MOOVA</option>
-                            <option value="WEBPACK">WEBPACK</option>
-                            <option value="RETIRA MELI">RETIRA MELI</option>
-                            <option value="IFLOW">IFLOW</option>
-                            <option value="OCA">OCA</option>
-                            <option value="ORO NEGRO">ORO NEGRO</option>
-                            <option value="FLOTA PROPIA">FLOTA PROPIA</option>
-                        </select>
-                    </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <input type="text" id="chofer" placeholder="CHOFER" required class="border p-3 rounded-xl uppercase">
+                    <input type="text" id="patente" placeholder="PATENTE" required class="border p-3 rounded-xl uppercase">
+                    <select id="colecta" required class="border p-3 rounded-xl bg-slate-50">
+                        <option value="">TRANSPORTE...</option>
+                        <option value="MOOVA">MOOVA</option>
+                        <option value="WEBPACK">WEBPACK</option>
+                        <option value="IFLOW">IFLOW</option>
+                        <option value="FLOTA PROPIA">FLOTA PROPIA</option>
+                    </select>
+                    <select id="puerta" required class="border p-3 rounded-xl bg-slate-50">
+                        <script>for(let i=1; i<=10; i++) document.write(`<option value="Puerta ${i}">Puerta ${i}</option>`);</script>
+                    </select>
+                </div>
 
-                    <div class="space-y-2">
-                        <label class="text-xs font-bold text-slate-500 uppercase">Responsable Despacho</label>
-                        <select id="despachador" required class="w-full border p-3 rounded-xl bg-slate-50 outline-none">
-                            <option value="">Seleccionar...</option>
-                            <option value="LUCAS ZERDA">LUCAS ZERDA</option>
-                            <option value="BRIAN LEICHNER">BRIAN LEICHNER</option>
-                            <option value="JORGE PALOMARES">JORGE PALOMARES</option>
-                        </select>
-                    </div>
-
-                    <div class="space-y-2">
-                        <label class="text-xs font-bold text-slate-500 uppercase">Chofer</label>
-                        <input type="text" id="chofer" required class="w-full border p-3 rounded-xl uppercase">
-                    </div>
-
-                    <div class="space-y-2">
-                        <label class="text-xs font-bold text-slate-500 uppercase">Patente</label>
-                        <input type="text" id="patente" required class="w-full border p-3 rounded-xl uppercase" placeholder="ABC-123">
-                    </div>
-
-                    <div class="space-y-2">
-                        <label class="text-xs font-bold text-slate-500 uppercase">DNI</label>
-                        <input type="number" id="dni" required class="w-full border p-3 rounded-xl">
-                    </div>
-
-                    <div class="space-y-2">
-                        <label class="text-xs font-bold text-slate-500 uppercase">Puerta</label>
-                        <select id="puerta" required class="w-full border p-3 rounded-xl bg-slate-50">
-                            <script>for(let i=1; i<=20; i++) document.write(`<option value="Puerta ${i}">Puerta ${i}</option>`);</script>
-                        </select>
+                <div class="bg-slate-50 p-6 rounded-2xl flex items-center justify-between border">
+                    <span class="font-bold text-slate-500">PALLETS</span>
+                    <div class="flex items-center gap-6">
+                        <button type="button" id="btn-menos" class="w-12 h-12 bg-white border-2 border-blue-600 text-blue-600 rounded-full font-black text-xl shadow-sm active:bg-blue-100">-</button>
+                        <input type="number" id="pallets" value="0" readonly class="w-12 text-center text-2xl font-black bg-transparent">
+                        <button type="button" id="btn-mas" class="w-12 h-12 bg-blue-600 text-white rounded-full font-black text-xl shadow-sm active:bg-blue-800">+</button>
                     </div>
                 </div>
 
-                <div class="bg-slate-50 p-6 rounded-2xl flex items-center justify-between border border-slate-100">
-                    <span class="text-xs font-bold text-slate-500 uppercase">Cantidad de Pallets</span>
-                    <div class="flex items-center gap-4">
-                        <button type="button" onclick="adjPallets(-1)" class="w-10 h-10 bg-white border rounded-full font-bold shadow-sm">-</button>
-                        <input type="number" id="pallets" value="0" class="w-16 text-center text-2xl font-black bg-transparent outline-none">
-                        <button type="button" onclick="adjPallets(1)" class="w-10 h-10 bg-white border rounded-full font-bold shadow-sm">+</button>
+                <div class="space-y-2">
+                    <div class="flex justify-between">
+                        <label class="text-xs font-bold text-slate-400 uppercase">Firma Transportista</label>
+                        <button type="button" id="btn-clear" class="text-blue-600 text-xs font-bold">BORRAR</button>
+                    </div>
+                    <div class="signature-wrapper border-2 border-dashed rounded-2xl overflow-hidden">
+                        <canvas id="canvas"></canvas>
                     </div>
                 </div>
 
-                <div class="space-y-3">
-                    <div class="flex justify-between items-center">
-                        <label class="text-xs font-bold text-slate-500 uppercase">Firma Transportista</label>
-                        <button type="button" onclick="clearCanvas()" class="text-xs text-blue-600 font-bold">LIMPIAR</button>
-                    </div>
-                    <div class="signature-wrapper border-2 border-dashed border-slate-200 rounded-2xl bg-slate-50 overflow-hidden">
-                        <canvas id="canvas" class="w-full h-40"></canvas>
-                    </div>
-                </div>
-
-                <button type="submit" class="w-full bg-blue-600 text-white font-bold py-4 rounded-xl shadow-lg hover:bg-blue-700 transition-all">
-                    GENERAR VISTA PREVIA
-                </button>
+                <button type="submit" class="w-full bg-blue-600 text-white font-bold py-4 rounded-xl">GENERAR VISTA PREVIA</button>
             </form>
         </div>
 
         <div class="lg:col-span-5 flex flex-col items-center">
-            <div id="vale-render" class="bg-white w-full border border-slate-200 shadow-xl rounded-sm p-8 text-slate-800">
-                <div class="text-center border-b pb-6 mb-6">
-                    <h2 class="text-xl font-black uppercase tracking-widest">Vale de Entrega</h2>
-                    <p class="text-[10px] text-slate-400 font-mono mt-1">OPERACIONES ZERDA LOGÍSTICA</p>
+            <div id="vale-render" class="bg-white w-full border border-slate-200 p-8 shadow-lg rounded-lg text-slate-800">
+                <h2 class="text-center font-black border-b pb-4 mb-4">VALE DE ENTREGA</h2>
+                <div class="space-y-2 text-sm">
+                    <p><strong>Transporte:</strong> <span id="v-colecta">---</span></p>
+                    <p><strong>Chofer:</strong> <span id="v-chofer">---</span></p>
+                    <p><strong>Pallets:</strong> <span id="v-pallets" class="text-xl font-bold">0</span></p>
                 </div>
-
-                <div class="grid grid-cols-2 gap-4 text-sm mb-6">
-                    <div><span class="text-[10px] text-slate-400 uppercase font-bold block">Transporte</span><p id="v-colecta" class="font-bold">---</p></div>
-                    <div class="text-right"><span class="text-[10px] text-slate-400 uppercase font-bold block">Puerta</span><p id="v-puerta" class="font-bold">---</p></div>
-                    <div><span class="text-[10px] text-slate-400 uppercase font-bold block">Chofer</span><p id="v-chofer" class="font-bold">---</p></div>
-                    <div class="text-right"><span class="text-[10px] text-slate-400 uppercase font-bold block">Pallets</span><p id="v-pallets" class="font-black text-2xl">0</p></div>
-                </div>
-
-                <div class="border-t pt-4">
-                    <span class="text-[10px] text-slate-400 uppercase font-bold block text-center mb-2">Firma Digital</span>
-                    <div class="h-24 flex items-center justify-center bg-slate-50 rounded-lg">
-                        <img id="v-firma" src="" class="max-h-full hidden">
-                    </div>
-                </div>
-                
-                <div class="mt-6 flex justify-between items-end text-[9px] text-slate-400 font-mono">
-                    <div>
-                        <p id="v-fecha">--/--/--</p>
-                        <p id="v-folio">FOLIO: PENDIENTE</p>
-                    </div>
-                    <p>Copia Digital Certificada</p>
+                <div class="mt-4 border-t pt-4 text-center">
+                    <p class="text-[10px] text-slate-400 mb-2">FIRMA</p>
+                    <img id="v-firma" class="mx-auto max-h-20 hidden border">
                 </div>
             </div>
-
-            <div id="controles" class="hidden mt-6 w-full space-y-3">
-                <button id="btn-save" onclick="enviarASupabase()" class="w-full bg-emerald-600 text-white font-bold py-4 rounded-xl flex items-center justify-center gap-3 hover:bg-emerald-700">
-                    <span id="btn-icon">☁️</span> <span id="btn-text">Subir a la Nube</span>
-                </button>
+            
+            <div id="controles" class="hidden mt-6 w-full">
+                <button id="btn-save" onclick="enviarASupabase()" class="w-full bg-emerald-600 text-white font-bold py-4 rounded-xl">SUBIR A SUPABASE</button>
             </div>
         </div>
     </main>
 
     <script>
-        // --- CONFIGURACIÓN SUPABASE ---
+        // --- 1. CONFIGURACIÓN ---
         const SUPABASE_URL = "TU_SUPABASE_URL";
         const SUPABASE_KEY = "TU_SUPABASE_ANON_KEY";
         const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        // --- LÓGICA PALLETS ---
-        function adjPallets(v) {
-            const input = document.getElementById('pallets');
-            let actual = Number(input.value) || 0;
-            input.value = Math.max(0, actual + v);
-        }
+        // --- 2. LÓGICA DE PALLETS (FORZADA) ---
+        const inputPallets = document.getElementById('pallets');
+        
+        document.getElementById('btn-mas').addEventListener('click', () => {
+            inputPallets.value = parseInt(inputPallets.value) + 1;
+        });
 
-        // --- LÓGICA FIRMA ---
+        document.getElementById('btn-menos').addEventListener('click', () => {
+            let val = parseInt(inputPallets.value);
+            if (val > 0) inputPallets.value = val - 1;
+        });
+
+        // --- 3. LÓGICA DE FIRMA (FORZADA PARA MÓVIL) ---
         const canvas = document.getElementById('canvas');
-        const ctx = canvas.getContext('2d');
-        let drawing = false;
+        const ctx = canvas.getContext('2d', { desynchronized: true });
+        let escribiendo = false;
 
-        function initCanvas() {
-            setTimeout(() => {
-                canvas.width = canvas.offsetWidth;
-                canvas.height = canvas.offsetHeight;
-                ctx.lineWidth = 3;
-                ctx.lineCap = 'round';
-                ctx.strokeStyle = '#000000';
-            }, 500);
+        function ajustarCanvas() {
+            const rect = canvas.parentNode.getBoundingClientRect();
+            canvas.width = rect.width;
+            canvas.height = 160;
+            ctx.lineWidth = 3;
+            ctx.lineJoin = 'round';
+            ctx.lineCap = 'round';
+            ctx.strokeStyle = '#000000';
         }
 
-        window.addEventListener('load', initCanvas);
-        window.addEventListener('resize', initCanvas);
+        window.addEventListener('load', ajustarCanvas);
+        window.addEventListener('resize', ajustarCanvas);
 
-        function getPos(e) {
+        function obtenerCoordenadas(e) {
             const rect = canvas.getBoundingClientRect();
-            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-            return { x: clientX - rect.left, y: clientY - rect.top };
+            const clienteX = e.touches ? e.touches[0].clientX : e.clientX;
+            const clienteY = e.touches ? e.touches[0].clientY : e.clientY;
+            return {
+                x: clienteX - rect.left,
+                y: clienteY - rect.top
+            };
         }
 
-        const start = (e) => { drawing = true; ctx.beginPath(); const p = getPos(e); ctx.moveTo(p.x, p.y); };
-        const move = (e) => { if(!drawing) return; if(e.touches) e.preventDefault(); const p = getPos(e); ctx.lineTo(p.x, p.y); ctx.stroke(); };
-        const stop = () => { drawing = false; };
+        const empezarFirma = (e) => {
+            escribiendo = true;
+            const pos = obtenerCoordenadas(e);
+            ctx.beginPath();
+            ctx.moveTo(pos.x, pos.y);
+            if(e.cancelable) e.preventDefault();
+        };
 
-        canvas.addEventListener('mousedown', start);
-        canvas.addEventListener('mousemove', move);
-        window.addEventListener('mouseup', stop);
-        canvas.addEventListener('touchstart', start, {passive: false});
-        canvas.addEventListener('touchmove', move, {passive: false});
-        canvas.addEventListener('touchend', stop);
+        const moverFirma = (e) => {
+            if (!escribiendo) return;
+            const pos = obtenerCoordenadas(e);
+            ctx.lineTo(pos.x, pos.y);
+            ctx.stroke();
+            if(e.cancelable) e.preventDefault();
+        };
 
-        function clearCanvas() { ctx.clearRect(0, 0, canvas.width, canvas.height); }
+        const detenerFirma = () => { escribiendo = false; };
 
-        // --- GUARDADO ---
-        async function enviarASupabase() {
-            const btn = document.getElementById('btn-save');
-            const txt = document.getElementById('btn-text');
-            const icon = document.getElementById('btn-icon');
+        // Registro de eventos explícito
+        canvas.addEventListener('mousedown', empezarFirma);
+        canvas.addEventListener('mousemove', moverFirma);
+        window.addEventListener('mouseup', detenerFirma);
 
-            btn.disabled = true;
-            txt.innerText = "Guardando...";
-            icon.innerHTML = '<div class="loader"></div>';
+        canvas.addEventListener('touchstart', empezarFirma, { passive: false });
+        canvas.addEventListener('touchmove', moverFirma, { passive: false });
+        canvas.addEventListener('touchend', detenerFirma);
 
-            const folio = "ZL-" + Math.random().toString(36).substr(2, 6).toUpperCase();
+        document.getElementById('btn-clear').addEventListener('click', () => {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        });
 
-            try {
-                const element = document.getElementById('vale-render');
-                const canvasPdf = await html2canvas(element, { scale: 2 });
-                const imgData = canvasPdf.toDataURL('image/png');
-                const { jsPDF } = window.jspdf;
-                const pdf = new jsPDF('p', 'mm', 'a4');
-                pdf.addImage(imgData, 'PNG', 0, 10, 210, (canvasPdf.height * 210) / canvasPdf.width);
-                const pdfBlob = pdf.output('blob');
-
-                // Storage
-                await supabase.storage.from('gestion_vales').upload(`pdfs/${folio}.pdf`, pdfBlob);
-                const firmaBlob = await (await fetch(canvas.toDataURL())).blob();
-                await supabase.storage.from('gestion_vales').upload(`firmas/${folio}.png`, firmaBlob);
-
-                // URLs
-                const pdfUrl = supabase.storage.from('gestion_vales').getPublicUrl(`pdfs/${folio}.pdf`).data.publicUrl;
-                const firmaUrl = supabase.storage.from('gestion_vales').getPublicUrl(`firmas/${folio}.png`).data.publicUrl;
-
-                // DB
-                await supabase.from('vales').insert([{
-                    folio_id: folio,
-                    transporte: document.getElementById('colecta').value,
-                    despachador: document.getElementById('despachador').value,
-                    chofer: document.getElementById('chofer').value.toUpperCase(),
-                    dni: document.getElementById('dni').value,
-                    patente: document.getElementById('patente').value.toUpperCase(),
-                    puerta: document.getElementById('puerta').value,
-                    pallets: parseInt(document.getElementById('pallets').value),
-                    firma_url: firmaUrl,
-                    pdf_url: pdfUrl
-                }]);
-
-                txt.innerText = "¡Éxito!";
-                icon.innerHTML = "✅";
-                pdf.save(`Vale_${folio}.pdf`);
-
-            } catch (e) {
-                console.error(e);
-                alert("Error: " + e.message);
-                btn.disabled = false;
-                txt.innerText = "Reintentar";
-                icon.innerHTML = "☁️";
-            }
-        }
-
+        // --- 4. VISTA PREVIA ---
         document.getElementById('valeForm').addEventListener('submit', (e) => {
             e.preventDefault();
             document.getElementById('v-colecta').innerText = document.getElementById('colecta').value;
             document.getElementById('v-chofer').innerText = document.getElementById('chofer').value;
-            document.getElementById('v-puerta').innerText = document.getElementById('puerta').value;
-            document.getElementById('v-pallets').innerText = document.getElementById('pallets').value;
-            document.getElementById('v-fecha').innerText = new Date().toLocaleString();
-            document.getElementById('v-folio').innerText = "FOLIO: PROCESANDO...";
+            document.getElementById('v-pallets').innerText = inputPallets.value;
             
-            const vFirma = document.getElementById('v-firma');
-            vFirma.src = canvas.toDataURL();
-            vFirma.classList.remove('hidden');
+            const imgPreview = document.getElementById('v-firma');
+            imgPreview.src = canvas.toDataURL();
+            imgPreview.classList.remove('hidden');
             document.getElementById('controles').classList.remove('hidden');
-            document.getElementById('vale-render').scrollIntoView({ behavior: 'smooth' });
         });
 
-        setInterval(() => { 
-            const r = document.getElementById('reloj');
-            if(r) r.innerText = new Date().toLocaleTimeString(); 
-        }, 1000);
+        // --- 5. ENVÍO A SUPABASE ---
+        async function enviarASupabase() {
+            const btn = document.getElementById('btn-save');
+            btn.disabled = true;
+            btn.innerText = "PROCESANDO...";
+
+            try {
+                const folio = "ZL-" + Math.random().toString(36).substr(2, 6).toUpperCase();
+                
+                // Generar PDF
+                const render = document.getElementById('vale-render');
+                const canvasPdf = await html2canvas(render);
+                const { jsPDF } = window.jspdf;
+                const pdf = new jsPDF();
+                pdf.addImage(canvasPdf.toDataURL('image/png'), 'PNG', 10, 10, 190, 0);
+                const pdfBlob = pdf.output('blob');
+
+                // Subir a Storage
+                await supabase.storage.from('gestion_vales').upload(`vales/${folio}.pdf`, pdfBlob);
+                
+                // Insertar en tabla
+                const { error } = await supabase.from('vales').insert([{
+                    folio_id: folio,
+                    transporte: document.getElementById('colecta').value,
+                    chofer: document.getElementById('chofer').value,
+                    pallets: parseInt(inputPallets.value),
+                    pdf_url: folio
+                }]);
+
+                if(error) throw error;
+                alert("¡GUARDADO CON ÉXITO!");
+                location.reload();
+
+            } catch (err) {
+                alert("Error: " + err.message);
+                btn.disabled = false;
+                btn.innerText = "REINTENTAR";
+            }
+        }
     </script>
 </body>
 </html>
