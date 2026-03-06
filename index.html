@@ -156,7 +156,7 @@
         // =============================================
         const SUPABASE_URL = "TU_SUPABASE_URL";
         const SUPABASE_KEY = "TU_SUPABASE_ANON_KEY";
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        const sbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
         // =============================================
         // GENERAR OPCIONES DE PUERTA
@@ -255,14 +255,14 @@
                 pdf.addImage(imgData, 'PNG', 0, 10, 210, (canvasPdf.height * 210) / canvasPdf.width);
                 const pdfBlob = pdf.output('blob');
 
-                await supabase.storage.from('gestion_vales').upload(`pdfs/${folio}.pdf`, pdfBlob);
+                await sbClient.storage.from('gestion_vales').upload(`pdfs/${folio}.pdf`, pdfBlob);
                 const firmaBlob = await (await fetch(canvas.toDataURL())).blob();
-                await supabase.storage.from('gestion_vales').upload(`firmas/${folio}.png`, firmaBlob);
+                await sbClient.storage.from('gestion_vales').upload(`firmas/${folio}.png`, firmaBlob);
 
-                const pdfUrl = supabase.storage.from('gestion_vales').getPublicUrl(`pdfs/${folio}.pdf`).data.publicUrl;
-                const firmaUrl = supabase.storage.from('gestion_vales').getPublicUrl(`firmas/${folio}.png`).data.publicUrl;
+                const pdfUrl = sbClient.storage.from('gestion_vales').getPublicUrl(`pdfs/${folio}.pdf`).data.publicUrl;
+                const firmaUrl = sbClient.storage.from('gestion_vales').getPublicUrl(`firmas/${folio}.png`).data.publicUrl;
 
-                await supabase.from('vales').insert([{
+                await sbClient.from('vales').insert([{
                     folio_id: folio,
                     transporte: document.getElementById('colecta').value,
                     despachador: document.getElementById('despachador').value,
