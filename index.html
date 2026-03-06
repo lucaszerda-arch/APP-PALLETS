@@ -2,14 +2,14 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>ZERDA LOGÍSTICA - Gestión de Vales</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
-        body { background-color: #f8fafc; font-family: 'Inter', sans-serif; }
+        body { background-color: #f8fafc; font-family: 'Inter', sans-serif; overflow-x: hidden; }
         .signature-wrapper { touch-action: none; cursor: crosshair; }
         .loader {
             border: 3px solid #f3f3f3;
@@ -87,158 +87,9 @@
                 <div class="bg-slate-50 p-6 rounded-2xl flex items-center justify-between border border-slate-100">
                     <span class="text-xs font-bold text-slate-500 uppercase">Cantidad de Pallets</span>
                     <div class="flex items-center gap-4">
-                        <button type="button" onclick="adjPallets(-1)" class="w-10 h-10 bg-white border rounded-full font-bold">-</button>
-                        <input type="number" id="pallets" value="0" class="w-16 text-center text-2xl font-black bg-transparent">
-                        <button type="button" onclick="adjPallets(1)" class="w-10 h-10 bg-white border rounded-full font-bold">+</button>
-                    </div>
-                </div>
-
-                <div class="space-y-3">
-                    <div class="flex justify-between items-center">
-                        <label class="text-xs font-bold text-slate-500 uppercase">Firma Transportista</label>
-                        <button type="button" onclick="clearCanvas()" class="text-xs text-blue-600 font-bold">LIMPIAR</button>
-                    </div>
-                    <div class="signature-wrapper border-2 border-dashed border-slate-200 rounded-2xl bg-slate-50 overflow-hidden">
-                        <canvas id="canvas" class="w-full h-40"></canvas>
-                    </div>
-                </div>
-
-                <button type="submit" class="w-full bg-blue-600 text-white font-bold py-4 rounded-xl shadow-lg hover:bg-blue-700 transition-all">
-                    GENERAR VISTA PREVIA
-                </button>
-            </form>
-        </div>
-
-        <div class="lg:col-span-5 flex flex-col items-center">
-            <div id="vale-render" class="bg-white w-full border border-slate-200 shadow-xl rounded-sm p-8 text-slate-800">
-                <div class="text-center border-b pb-6 mb-6">
-                    <h2 class="text-xl font-black uppercase tracking-widest">Vale de Entrega</h2>
-                    <p class="text-[10px] text-slate-400 font-mono mt-1">OPERACIONES ZERDA LOGÍSTICA</p>
-                </div>
-
-                <div class="grid grid-cols-2 gap-4 text-sm mb-6">
-                    <div><span class="text-[10px] text-slate-400 uppercase font-bold block">Transporte</span><p id="v-colecta" class="font-bold">---</p></div>
-                    <div class="text-right"><span class="text-[10px] text-slate-400 uppercase font-bold block">Puerta</span><p id="v-puerta" class="font-bold">---</p></div>
-                    <div><span class="text-[10px] text-slate-400 uppercase font-bold block">Chofer</span><p id="v-chofer" class="font-bold">---</p></div>
-                    <div class="text-right"><span class="text-[10px] text-slate-400 uppercase font-bold block">Pallets</span><p id="v-pallets" class="font-black text-2xl">0</p></div>
-                </div>
-
-                <div class="border-t pt-4">
-                    <span class="text-[10px] text-slate-400 uppercase font-bold block text-center mb-2">Firma Digital</span>
-                    <div class="h-24 flex items-center justify-center bg-slate-50 rounded-lg">
-                        <img id="v-firma" src="" class="max-h-full hidden">
-                    </div>
-                </div>
-                
-                <div class="mt-6 flex justify-between items-end text-[9px] text-slate-400 font-mono">
-                    <div>
-                        <p id="v-fecha">--/--/--</p>
-                        <p id="v-folio">FOLIO: PENDIENTE</p>
-                    </div>
-                    <p>Copia Digital Certificada</p>
-                </div>
-            </div>
-
-            <div id="controles" class="hidden mt-6 w-full space-y-3">
-                <button id="btn-save" onclick="enviarASupabase()" class="w-full bg-emerald-600 text-white font-bold py-4 rounded-xl flex items-center justify-center gap-3 hover:bg-emerald-700">
-                    <span id="btn-icon">☁️</span> <span id="btn-text">Subir a la Nube</span>
-                </button>
-            </div>
-        </div>
-    </main>
-
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ZERDA LOGÍSTICA - Gestión de Vales</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <style>
-        body { background-color: #f8fafc; font-family: 'Inter', sans-serif; }
-        .signature-wrapper { touch-action: none; cursor: crosshair; }
-        .loader {
-            border: 3px solid #f3f3f3;
-            border-top: 3px solid #2563eb;
-            border-radius: 50%;
-            width: 20px;
-            height: 20px;
-            animation: spin 1s linear infinite;
-        }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-    </style>
-</head>
-<body class="p-4 md:p-10">
-
-    <header class="max-w-6xl mx-auto mb-10 flex justify-between items-center">
-        <div>
-            <h1 class="text-3xl font-black text-slate-800 tracking-tighter">ZERDA <span class="text-blue-600">LOGÍSTICA</span></h1>
-            <p class="text-slate-500 text-sm font-medium">Sistema de Gestión en Tiempo Real</p>
-        </div>
-        <div id="reloj" class="hidden md:block text-lg font-mono bg-white border px-4 py-2 rounded-xl shadow-sm text-slate-600">00:00:00</div>
-    </header>
-
-    <main class="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-10">
-        
-        <div class="lg:col-span-7 bg-white p-8 rounded-2xl shadow-sm border border-slate-200">
-            <form id="valeForm" class="space-y-6">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div class="space-y-2">
-                        <label class="text-xs font-bold text-slate-500 uppercase">Transporte</label>
-                        <select id="colecta" required class="w-full border p-3 rounded-xl bg-slate-50 outline-none">
-                            <option value="">Seleccionar...</option>
-                            <option value="MOOVA">MOOVA</option>
-                            <option value="WEBPACK">WEBPACK</option>
-                            <option value="RETIRA MELI">RETIRA MELI</option>
-                            <option value="IFLOW">IFLOW</option>
-                            <option value="OCA">OCA</option>
-                            <option value="ORO NEGRO">ORO NEGRO</option>
-                            <option value="FLOTA PROPIA">FLOTA PROPIA</option>
-                        </select>
-                    </div>
-
-                    <div class="space-y-2">
-                        <label class="text-xs font-bold text-slate-500 uppercase">Responsable Despacho</label>
-                        <select id="despachador" required class="w-full border p-3 rounded-xl bg-slate-50 outline-none">
-                            <option value="">Seleccionar...</option>
-                            <option value="LUCAS ZERDA">LUCAS ZERDA</option>
-                            <option value="BRIAN LEICHNER">BRIAN LEICHNER</option>
-                            <option value="JORGE PALOMARES">JORGE PALOMARES</option>
-                        </select>
-                    </div>
-
-                    <div class="space-y-2">
-                        <label class="text-xs font-bold text-slate-500 uppercase">Chofer</label>
-                        <input type="text" id="chofer" required class="w-full border p-3 rounded-xl uppercase">
-                    </div>
-
-                    <div class="space-y-2">
-                        <label class="text-xs font-bold text-slate-500 uppercase">Patente</label>
-                        <input type="text" id="patente" required class="w-full border p-3 rounded-xl uppercase" placeholder="ABC-123">
-                    </div>
-
-                    <div class="space-y-2">
-                        <label class="text-xs font-bold text-slate-500 uppercase">DNI</label>
-                        <input type="number" id="dni" required class="w-full border p-3 rounded-xl">
-                    </div>
-
-                    <div class="space-y-2">
-                        <label class="text-xs font-bold text-slate-500 uppercase">Puerta</label>
-                        <select id="puerta" required class="w-full border p-3 rounded-xl bg-slate-50">
-                            <script>for(let i=1; i<=20; i++) document.write(`<option value="Puerta ${i}">Puerta ${i}</option>`);</script>
-                        </select>
-                    </div>
-                </div>
-
-                <div class="bg-slate-50 p-6 rounded-2xl flex items-center justify-between border border-slate-100">
-                    <span class="text-xs font-bold text-slate-500 uppercase">Cantidad de Pallets</span>
-                    <div class="flex items-center gap-4">
-                        <button type="button" onclick="adjPallets(-1)" class="w-10 h-10 bg-white border rounded-full font-bold">-</button>
-                        <input type="number" id="pallets" value="0" class="w-16 text-center text-2xl font-black bg-transparent">
-                        <button type="button" onclick="adjPallets(1)" class="w-10 h-10 bg-white border rounded-full font-bold">+</button>
+                        <button type="button" onclick="adjPallets(-1)" class="w-10 h-10 bg-white border rounded-full font-bold shadow-sm">-</button>
+                        <input type="number" id="pallets" value="0" class="w-16 text-center text-2xl font-black bg-transparent outline-none">
+                        <button type="button" onclick="adjPallets(1)" class="w-10 h-10 bg-white border rounded-full font-bold shadow-sm">+</button>
                     </div>
                 </div>
 
@@ -302,38 +153,52 @@
         const SUPABASE_KEY = "TU_SUPABASE_ANON_KEY";
         const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        // --- LÓGICA CANVAS ---
+        // --- LÓGICA PALLETS ---
+        function adjPallets(v) {
+            const input = document.getElementById('pallets');
+            let actual = Number(input.value) || 0;
+            input.value = Math.max(0, actual + v);
+        }
+
+        // --- LÓGICA FIRMA ---
         const canvas = document.getElementById('canvas');
         const ctx = canvas.getContext('2d');
         let drawing = false;
 
         function initCanvas() {
-            canvas.width = canvas.offsetWidth;
-            canvas.height = canvas.offsetHeight;
-            ctx.lineWidth = 3;
-            ctx.lineCap = 'round';
-            ctx.strokeStyle = '#000';
+            setTimeout(() => {
+                canvas.width = canvas.offsetWidth;
+                canvas.height = canvas.offsetHeight;
+                ctx.lineWidth = 3;
+                ctx.lineCap = 'round';
+                ctx.strokeStyle = '#000000';
+            }, 500);
         }
+
         window.addEventListener('load', initCanvas);
+        window.addEventListener('resize', initCanvas);
 
         function getPos(e) {
             const rect = canvas.getBoundingClientRect();
-            return {
-                x: (e.clientX || e.touches[0].clientX) - rect.left,
-                y: (e.clientY || e.touches[0].clientY) - rect.top
-            };
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+            return { x: clientX - rect.left, y: clientY - rect.top };
         }
 
-        canvas.addEventListener('mousedown', (e) => { drawing = true; ctx.beginPath(); const p = getPos(e); ctx.moveTo(p.x, p.y); });
-        canvas.addEventListener('mousemove', (e) => { if(!drawing) return; const p = getPos(e); ctx.lineTo(p.x, p.y); ctx.stroke(); });
-        window.addEventListener('mouseup', () => drawing = false);
-        canvas.addEventListener('touchstart', (e) => { e.preventDefault(); drawing = true; ctx.beginPath(); const p = getPos(e); ctx.moveTo(p.x, p.y); });
-        canvas.addEventListener('touchmove', (e) => { e.preventDefault(); if(!drawing) return; const p = getPos(e); ctx.lineTo(p.x, p.y); ctx.stroke(); });
+        const start = (e) => { drawing = true; ctx.beginPath(); const p = getPos(e); ctx.moveTo(p.x, p.y); };
+        const move = (e) => { if(!drawing) return; if(e.touches) e.preventDefault(); const p = getPos(e); ctx.lineTo(p.x, p.y); ctx.stroke(); };
+        const stop = () => { drawing = false; };
+
+        canvas.addEventListener('mousedown', start);
+        canvas.addEventListener('mousemove', move);
+        window.addEventListener('mouseup', stop);
+        canvas.addEventListener('touchstart', start, {passive: false});
+        canvas.addEventListener('touchmove', move, {passive: false});
+        canvas.addEventListener('touchend', stop);
 
         function clearCanvas() { ctx.clearRect(0, 0, canvas.width, canvas.height); }
-        function adjPallets(v) { document.getElementById('pallets').value = Math.max(0, parseInt(document.getElementById('pallets').value) + v); }
 
-        // --- PROCESO DE GUARDADO ---
+        // --- GUARDADO ---
         async function enviarASupabase() {
             const btn = document.getElementById('btn-save');
             const txt = document.getElementById('btn-text');
@@ -344,10 +209,8 @@
             icon.innerHTML = '<div class="loader"></div>';
 
             const folio = "ZL-" + Math.random().toString(36).substr(2, 6).toUpperCase();
-            const timestamp = Date.now();
 
             try {
-                // 1. GENERAR PDF COMO BLOB
                 const element = document.getElementById('vale-render');
                 const canvasPdf = await html2canvas(element, { scale: 2 });
                 const imgData = canvasPdf.toDataURL('image/png');
@@ -356,25 +219,17 @@
                 pdf.addImage(imgData, 'PNG', 0, 10, 210, (canvasPdf.height * 210) / canvasPdf.width);
                 const pdfBlob = pdf.output('blob');
 
-                // 2. SUBIR PDF AL STORAGE
-                const { data: dataPdf, error: errPdf } = await supabase.storage
-                    .from('gestion_vales')
-                    .upload(`pdfs/${folio}.pdf`, pdfBlob);
-                if(errPdf) throw errPdf;
-
-                // 3. SUBIR FIRMA AL STORAGE
+                // Storage
+                await supabase.storage.from('gestion_vales').upload(`pdfs/${folio}.pdf`, pdfBlob);
                 const firmaBlob = await (await fetch(canvas.toDataURL())).blob();
-                const { data: dataFirma, error: errFirma } = await supabase.storage
-                    .from('gestion_vales')
-                    .upload(`firmas/${folio}.png`, firmaBlob);
-                if(errFirma) throw errFirma;
+                await supabase.storage.from('gestion_vales').upload(`firmas/${folio}.png`, firmaBlob);
 
-                // 4. OBTENER URLS PÚBLICAS
+                // URLs
                 const pdfUrl = supabase.storage.from('gestion_vales').getPublicUrl(`pdfs/${folio}.pdf`).data.publicUrl;
                 const firmaUrl = supabase.storage.from('gestion_vales').getPublicUrl(`firmas/${folio}.png`).data.publicUrl;
 
-                // 5. GUARDAR EN TABLA VALES
-                const { error: errDb } = await supabase.from('vales').insert([{
+                // DB
+                await supabase.from('vales').insert([{
                     folio_id: folio,
                     transporte: document.getElementById('colecta').value,
                     despachador: document.getElementById('despachador').value,
@@ -386,23 +241,20 @@
                     firma_url: firmaUrl,
                     pdf_url: pdfUrl
                 }]);
-                if(errDb) throw errDb;
 
-                // ÉXITO
-                txt.innerText = "¡Guardado con éxito!";
+                txt.innerText = "¡Éxito!";
                 icon.innerHTML = "✅";
-                btn.classList.replace('bg-emerald-600', 'bg-blue-600');
-                pdf.save(`Vale_${folio}.pdf`); // Descarga local también
+                pdf.save(`Vale_${folio}.pdf`);
 
             } catch (e) {
                 console.error(e);
                 alert("Error: " + e.message);
                 btn.disabled = false;
                 txt.innerText = "Reintentar";
+                icon.innerHTML = "☁️";
             }
         }
 
-        // VISTA PREVIA
         document.getElementById('valeForm').addEventListener('submit', (e) => {
             e.preventDefault();
             document.getElementById('v-colecta').innerText = document.getElementById('colecta').value;
@@ -410,16 +262,19 @@
             document.getElementById('v-puerta').innerText = document.getElementById('puerta').value;
             document.getElementById('v-pallets').innerText = document.getElementById('pallets').value;
             document.getElementById('v-fecha').innerText = new Date().toLocaleString();
+            document.getElementById('v-folio').innerText = "FOLIO: PROCESANDO...";
             
             const vFirma = document.getElementById('v-firma');
             vFirma.src = canvas.toDataURL();
             vFirma.classList.remove('hidden');
             document.getElementById('controles').classList.remove('hidden');
+            document.getElementById('vale-render').scrollIntoView({ behavior: 'smooth' });
         });
 
-        setInterval(() => { document.getElementById('reloj').innerText = new Date().toLocaleTimeString(); }, 1000);
+        setInterval(() => { 
+            const r = document.getElementById('reloj');
+            if(r) r.innerText = new Date().toLocaleTimeString(); 
+        }, 1000);
     </script>
 </body>
 </html>
-
-
